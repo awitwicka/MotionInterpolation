@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MotionInterpolation
 {
-    public class QuaternionLinear : IInterpolation
+    public class QuaternionSpherical : IInterpolation
     {
         GraphicsDevice device;
 
@@ -24,7 +24,7 @@ namespace MotionInterpolation
         private List<VertexPositionColor> LineVertices = new List<VertexPositionColor>();
         private List<short> LineIndices = new List<short>();
 
-        public QuaternionLinear(GraphicsDevice device, Vector3 position0, Vector3 position1, Quaternion rotation0, Quaternion rotation1)
+        public QuaternionSpherical(GraphicsDevice device, Vector3 position0, Vector3 position1, Quaternion rotation0, Quaternion rotation1)
         {
             this.device = device;
             Position0 = position0;
@@ -54,8 +54,8 @@ namespace MotionInterpolation
         private void NextStep(float time) //0-1
         {
             var nextPos = (1 - time) * Position0 + time * Position1;
-            var nextAngle = Rotation0 * (1 - time) +  Rotation1 * time;
-            //var nextAngle = Quaternion.Lerp(Rotation0, Rotation1, time); //both are good
+            var nextAngle = Quaternion.Slerp(Rotation0, Rotation1, time);
+            //var nextAngle = Rotation0 * Math.Pow((Quaternion.Inverse(Rotation0) * Rotation1), time);
 
             //drawing line
             short vertCount = (short)LineVertices.Count;

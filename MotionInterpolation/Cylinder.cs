@@ -126,7 +126,7 @@ namespace MotionInterpolation
 
         public void Rotate(Vector3 rotationVector)
         {
-            var rotation = Matrix.CreateRotationX(MathHelper.ToRadians(rotationVector.X)) * Matrix.CreateRotationY(MathHelper.ToRadians(rotationVector.Z)) * Matrix.CreateRotationZ(MathHelper.ToRadians(rotationVector.Y));
+            var rotation = Matrix.CreateRotationX(MathHelper.ToRadians(rotationVector.X)) * Matrix.CreateRotationY(MathHelper.ToRadians(rotationVector.Z)) * Matrix.CreateRotationZ(MathHelper.ToRadians(-rotationVector.Y));
             for (int i = 0; i < vertices.Count; i++)
             {
                 var v = vertices[i].Position;
@@ -139,9 +139,10 @@ namespace MotionInterpolation
 
         public void QuanterionRotation(Quaternion quaternion)
         {
-            double z = quaternion.Z;
-            quaternion.Z = quaternion.Y;
-            quaternion.Y = z;
+            //change z with y to correct display in xna
+            //double z = quaternion.Z;
+            //quaternion.Z = quaternion.Y;
+            //quaternion.Y = z;
 
             var rotation = quaternion.ToMatrix();
             for (int i = 0; i < vertices.Count; i++)

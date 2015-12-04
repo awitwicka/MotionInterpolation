@@ -29,38 +29,49 @@ namespace MotionInterpolation
     public sealed partial class GamePage : Page
     {
         readonly Game1 _game1;
-        readonly Game2 _game2;
 
         public GamePage()
         {
             this.InitializeComponent();
             // Create the game.
             var launchArguments = string.Empty;
-            //NewWindow();
-            //_game2 = MonoGame.Framework.XamlGame<Game2>.Create(launchArguments, Window.Current.CoreWindow, swapChainPanel2);
             _game1 = MonoGame.Framework.XamlGame<Game1>.Create(launchArguments, Window.Current.CoreWindow, swapChainPanel1);
         }
 
 
-        private async void NewWindow()
+        //private async void NewWindow()
+        //{
+        //    CoreApplicationView newCoreView = CoreApplication.CreateNewView();
+
+        //    ApplicationView newAppView = null;
+        //    int mainViewId = ApplicationView.GetApplicationViewIdForWindow(CoreApplication.MainView.CoreWindow);
+
+        //    await newCoreView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,() =>
+        //      {
+        //          newAppView = ApplicationView.GetForCurrentView();
+        //          //Window.Current.Content = new SubWindowUserControl();
+        //          Window.Current.Activate();
+        //      });
+
+        //    await ApplicationViewSwitcher.TryShowAsStandaloneAsync(
+        //      newAppView.Id,
+        //      ViewSizePreference.UseHalf,
+        //      mainViewId,
+        //      ViewSizePreference.UseHalf);
+        //}
+
+        private void StartPauseAnimationButton_Checked(object sender, RoutedEventArgs e)
         {
-            CoreApplicationView newCoreView = CoreApplication.CreateNewView();
+            var button = (AppBarToggleButton)sender;
+            button.Content = new SymbolIcon(Symbol.Pause);
+            _game1.IsAnimated = true;
+        }
 
-            ApplicationView newAppView = null;
-            int mainViewId = ApplicationView.GetApplicationViewIdForWindow(CoreApplication.MainView.CoreWindow);
-
-            await newCoreView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,() =>
-              {
-                  newAppView = ApplicationView.GetForCurrentView();
-                  //Window.Current.Content = new SubWindowUserControl();
-                  Window.Current.Activate();
-              });
-
-            await ApplicationViewSwitcher.TryShowAsStandaloneAsync(
-              newAppView.Id,
-              ViewSizePreference.UseHalf,
-              mainViewId,
-              ViewSizePreference.UseHalf);
+        private void StartPauseAnimationButton_Unchecked(object sender, RoutedEventArgs e)
+        {
+            var button = (AppBarToggleButton)sender;
+            button.Content = new SymbolIcon(Symbol.Play);
+            _game1.IsAnimated = false;
         }
     }
 }

@@ -12,34 +12,35 @@ namespace MotionInterpolation
     public class Game1 : Game
     {
         public GraphicsDeviceManager graphics;
+        public bool IsAnimated = false;
+
+        public Vector3 Position0;
+        public Vector3 Position1;
+        public Vector3 EulerRotation0;
+        public Vector3 EulerRotation1;
+
+        private Quaternion Rotation0;
+        private Quaternion Rotation1;
 
         private BasicEffect effect;
         private BasicEffect wireframeEffect;
         private ArcBallCamera camera;
         private EulerLinear eulerLinInterpolation;
         private QuaternionLinear quaternionLinInterpolation;
-
-        public Vector3 Position0;
-        public Vector3 Position1;
-        public Vector3 EulerRotation0;
-        public Vector3 EulerRotation1;
-        private Quaternion Rotation0;
-        private Quaternion Rotation1;
-
+        private QuaternionSpherical quaternionSpherInterpolation;
         private List<VertexPositionColor> GlobalAxisVertices = new List<VertexPositionColor>();
         private List<short> GlobalAxisIndices = new List<short>();
-
-        double timeElapsedFromAnimationStart = 0;
+        private double timeElapsedFromAnimationStart = 0;
 
         //camera control
         private float scrollRate = 1.0f;
         private MouseState previousMouse;
 
-        //Viewport defaultViewport;
-        //Viewport leftViewport;
-        //Viewport rightViewport;
-        //Matrix projectionMatrix;
-        //Matrix halfprojectionMatrix;
+        Viewport defaultViewport;
+        Viewport leftViewport;
+        Viewport rightViewport;
+        Matrix projectionMatrix;
+        Matrix halfprojectionMatrix;
 
         public Game1()
         {
@@ -59,7 +60,7 @@ namespace MotionInterpolation
             Position0 = new Vector3(-1, -1, -1);
             Position1 = new Vector3(10, 10, 10);
             EulerRotation0 = new Vector3(0, 0, 0);
-            EulerRotation1 = new Vector3(0, 0, 0);
+            EulerRotation1 = new Vector3(20, 170, 80);
             //EulerRotation0 = new Vector3(2, 10, 60);
             //EulerRotation1 = new Vector3(180, -174, 190);
             //todo check if not in constructor
@@ -67,8 +68,10 @@ namespace MotionInterpolation
             wireframeEffect = new BasicEffect(graphics.GraphicsDevice);
             camera = new ArcBallCamera(new Vector3(0f, 0f, 0f), MathHelper.ToRadians(-200), 0f, 10f, 300f, 50f, GraphicsDevice.Viewport.AspectRatio, 0.1f, 512f);
 
-            Rotation0 = Quaternion.CreateFromYawPitchRoll(EulerRotation0.Z, EulerRotation0.Y, EulerRotation0.X);
-            Rotation1 = Quaternion.CreateFromYawPitchRoll(EulerRotation1.Z, EulerRotation1.Y, EulerRotation1.X);
+            Rotation0 = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-EulerRotation0.Z), MathHelper.ToRadians(-EulerRotation0.X), MathHelper.ToRadians(EulerRotation0.Y));
+            Rotation1 = Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-EulerRotation1.Z), MathHelper.ToRadians(-EulerRotation1.X), MathHelper.ToRadians(EulerRotation1.Y));
+            //Rotation0 = Utility.EulerToQuaternion(MathHelper.ToRadians(-EulerRotation0.Z), MathHelper.ToRadians(EulerRotation0.Y), MathHelper.ToRadians(EulerRotation0.X));
+            //Rotation1 = Utility.EulerToQuaternion(MathHelper.ToRadians(-EulerRotation1.Z), MathHelper.ToRadians(EulerRotation1.Y), MathHelper.ToRadians(EulerRotation1.X));
 
             InitializeGlobalAxis(4);
 
@@ -95,17 +98,17 @@ namespace MotionInterpolation
         {
             eulerLinInterpolation = new EulerLinear(graphics.GraphicsDevice, Position0, Position1, EulerRotation0, EulerRotation1);
             quaternionLinInterpolation = new QuaternionLinear(graphics.GraphicsDevice, Position0, Position1, Rotation0, Rotation1);
-            //defaultViewport = GraphicsDevice.Viewport;
-            //leftViewport = defaultViewport;
-            //rightViewport = defaultViewport;
-            //leftViewport.Width = leftViewport.Width / 2;
-            //rightViewport.Width = rightViewport.Width / 2;
-            //rightViewport.X = leftViewport.Width;
-            //projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 4.0f / 3.0f, 1.0f, 10000f);
-            //halfprojectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 2.0f / 3.0f, 1.0f, 10000f);
+            quaternionSpherInterpolation = new QuaternionSpherical(graphics.GraphicsDevice, Position0, Position1, Rotation0, Rotation1);
 
+            defaultViewport = GraphicsDevice.Viewport;
+            leftViewport = defaultViewport;
+            rightViewport = defaultViewport;
+            leftViewport.Width = leftViewport.Width / 2;
+            rightViewport.Width = rightViewport.Width / 2;
+            rightViewport.X = leftViewport.Width;
+            projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 4.0f / 3.0f, 1.0f, 10000f);
+            halfprojectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 2.0f / 3.0f, 1.0f, 10000f);
         }
-
         protected override void UnloadContent()
         {
             // TODO: Unload any non ContentManager content here
@@ -140,6 +143,15 @@ namespace MotionInterpolation
             previousMouse = mouseState;
             base.Update(gameTime);
         }
+        
+        private void DrawAxis(ArcBallCamera camera, Effect wireframeEffect)
+        {
+            foreach (EffectPass pass in wireframeEffect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList, GlobalAxisVertices.ToArray(), 0, GlobalAxisVertices.Count, GlobalAxisIndices.ToArray(), 0, GlobalAxisIndices.Count / 2);
+            }
+        }
 
         protected override void Draw(GameTime gameTime)
         {
@@ -159,16 +171,17 @@ namespace MotionInterpolation
             wireframeEffect.Projection = camera.Projection;
             wireframeEffect.VertexColorEnabled = true;
 
-            foreach (EffectPass pass in wireframeEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList, GlobalAxisVertices.ToArray(), 0, GlobalAxisVertices.Count, GlobalAxisIndices.ToArray(), 0, GlobalAxisIndices.Count/2);
-            }
+            if(IsAnimated)
+                timeElapsedFromAnimationStart += gameTime.ElapsedGameTime.TotalMilliseconds;
 
-            timeElapsedFromAnimationStart += gameTime.ElapsedGameTime.TotalMilliseconds;
-            eulerLinInterpolation.Draw(camera, effect, wireframeEffect, timeElapsedFromAnimationStart, 10);
-            quaternionLinInterpolation.Draw(camera, effect, wireframeEffect, timeElapsedFromAnimationStart, 10);
+            GraphicsDevice.Viewport = leftViewport;
+            DrawAxis(camera, wireframeEffect);
+            eulerLinInterpolation.Draw(camera, effect, wireframeEffect, timeElapsedFromAnimationStart, 10, IsAnimated);
 
+            GraphicsDevice.Viewport = rightViewport;
+            DrawAxis(camera, wireframeEffect);
+            quaternionLinInterpolation.Draw(camera, effect, wireframeEffect, timeElapsedFromAnimationStart, 10, IsAnimated);
+            quaternionSpherInterpolation.Draw(camera, effect, wireframeEffect, timeElapsedFromAnimationStart, 10, IsAnimated);
             base.Draw(gameTime);
         }
     }

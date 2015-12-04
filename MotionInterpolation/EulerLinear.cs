@@ -80,21 +80,23 @@ namespace MotionInterpolation
         /// <param name="effect"></param>
         /// <param name="timeElapsedFromAnimationStart">in miliseconds</param>
         /// <param name="totalAnimationTime">in seconds</param>
-        public void Draw(ArcBallCamera camera, BasicEffect effect, BasicEffect wireframeEffect, double timeElapsedFromAnimationStart, double totalAnimationTime)
+        public void Draw(ArcBallCamera camera, BasicEffect effect, BasicEffect wireframeEffect, double timeElapsedFromAnimationStart, double totalAnimationTime, bool isAnimated)
         {
-            totalAnimationTime *= 1000;
-            if (timeElapsedFromAnimationStart <= totalAnimationTime /*&& gameTime.ElapsedGameTime.TotalMilliseconds>=1*/)
-                NextStep((float)(timeElapsedFromAnimationStart / totalAnimationTime));
-
+            if (isAnimated)
+            {
+                totalAnimationTime *= 1000;
+                if (timeElapsedFromAnimationStart <= totalAnimationTime /*&& gameTime.ElapsedGameTime.TotalMilliseconds>=1*/)
+                    NextStep((float)(timeElapsedFromAnimationStart / totalAnimationTime));
+            }
             Axe0.Draw(effect);
             Axe1.Draw(effect);
             AxeNext.Draw(effect);
-
-            foreach (EffectPass pass in wireframeEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                device.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList, LineVertices.ToArray(), 0, LineVertices.Count, LineIndices.ToArray(), 0, LineVertices.Count - 1);
-            }
+            if (LineVertices.Count-1 > 0)
+                foreach (EffectPass pass in wireframeEffect.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+                    device.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList, LineVertices.ToArray(), 0, LineVertices.Count, LineIndices.ToArray(), 0, LineVertices.Count-1);
+                }
         }
 
     }

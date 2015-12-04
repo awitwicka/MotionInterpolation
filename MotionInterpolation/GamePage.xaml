@@ -6,24 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <!--<SwapChainPanel x:Name="swapChainPanel1"/> 
-    <SwapChainPanel x:Name="swapChainPanel2"/>-->
 
-    <Grid>
+    <SwapChainPanel x:Name="swapChainPanel1">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <!--
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>-->
-
-        <SwapChainPanel Grid.Row="0" x:Name="swapChainPanel1" />
-        <!--<SwapChainPanel Grid.Column="1" x:Name="swapChainPanel2" />-->
-
-        <!--<CommandBar Grid.Row="1" Grid.RowSpan="2" IsOpen="True">
+        <CommandBar Grid.Row="1" IsOpen="True">
             <CommandBar.Content>
                 <StackPanel Padding="16,4" Orientation="Horizontal">
                     <TextBlock Text="Position0"/>
@@ -43,8 +32,10 @@
                 </StackPanel>
             </CommandBar.Content>
             <CommandBar.PrimaryCommands>
-
+                <AppBarToggleButton x:Name="StartPauseAnimationButton" Checked="StartPauseAnimationButton_Checked"  Unchecked="StartPauseAnimationButton_Unchecked">
+                    <SymbolIcon Symbol="Play"></SymbolIcon>
+                </AppBarToggleButton>
             </CommandBar.PrimaryCommands>
-        </CommandBar>-->
-    </Grid>
+        </CommandBar>
+    </SwapChainPanel>
 </Page>
