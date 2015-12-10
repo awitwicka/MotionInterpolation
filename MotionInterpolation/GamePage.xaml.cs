@@ -36,6 +36,7 @@ namespace MotionInterpolation
             // Create the game.
             var launchArguments = string.Empty;
             _game1 = MonoGame.Framework.XamlGame<Game1>.Create(launchArguments, Window.Current.CoreWindow, swapChainPanel1);
+            this.DataContext = _game1;
         }
 
 
@@ -72,6 +73,21 @@ namespace MotionInterpolation
             var button = (AppBarToggleButton)sender;
             button.Content = new SymbolIcon(Symbol.Play);
             _game1.IsAnimated = false;
+        }
+
+        private void SelectQaternionLinButton_Click(object sender, RoutedEventArgs e)
+        {
+            _game1.QuaternionLinInterpolation.IsVisible = !_game1.QuaternionLinInterpolation.IsVisible;
+        }
+
+        private void SelectQaternionSpherButton_Click(object sender, RoutedEventArgs e)
+        {
+            _game1.QuaternionSpherInterpolation.IsVisible = !_game1.QuaternionSpherInterpolation.IsVisible;
+        }
+
+        private void ToggleStepsVisibilityButton_Click(object sender, RoutedEventArgs e)
+        {
+            _game1.IsStepVisible = !_game1.IsStepVisible;
         }
     }
 }

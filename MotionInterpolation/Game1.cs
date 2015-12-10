@@ -13,6 +13,13 @@ namespace MotionInterpolation
     {
         public GraphicsDeviceManager graphics;
         public bool IsAnimated = false;
+        public bool IsStepVisible = true;
+        private int stepsNumber = 0;
+        public int StepsNumber { get { return stepsNumber; } set { stepsNumber = value; ResetInterpolationsSteps(); } }
+
+        public EulerLinear EulerLinInterpolation;
+        public QuaternionLinear QuaternionLinInterpolation;
+        public QuaternionSpherical QuaternionSpherInterpolation;
 
         public Vector3 Position0;
         public Vector3 Position1;
@@ -25,9 +32,6 @@ namespace MotionInterpolation
         private BasicEffect effect;
         private BasicEffect wireframeEffect;
         private ArcBallCamera camera;
-        private EulerLinear eulerLinInterpolation;
-        private QuaternionLinear quaternionLinInterpolation;
-        private QuaternionSpherical quaternionSpherInterpolation;
         private List<VertexPositionColor> GlobalAxisVertices = new List<VertexPositionColor>();
         private List<short> GlobalAxisIndices = new List<short>();
         private double timeElapsedFromAnimationStart = 0;
@@ -96,9 +100,10 @@ namespace MotionInterpolation
         }
         protected override void LoadContent()
         {
-            eulerLinInterpolation = new EulerLinear(graphics.GraphicsDevice, Position0, Position1, EulerRotation0, EulerRotation1);
-            quaternionLinInterpolation = new QuaternionLinear(graphics.GraphicsDevice, Position0, Position1, Rotation0, Rotation1);
-            quaternionSpherInterpolation = new QuaternionSpherical(graphics.GraphicsDevice, Position0, Position1, Rotation0, Rotation1);
+            EulerLinInterpolation = new EulerLinear(graphics.GraphicsDevice, Position0, Position1, EulerRotation0, EulerRotation1);
+            QuaternionLinInterpolation = new QuaternionLinear(graphics.GraphicsDevice, Position0, Position1, Rotation0, Rotation1);
+            QuaternionSpherInterpolation = new QuaternionSpherical(graphics.GraphicsDevice, Position0, Position1, Rotation0, Rotation1);
+            QuaternionSpherInterpolation.IsVisible = false;
 
             defaultViewport = GraphicsDevice.Viewport;
             leftViewport = defaultViewport;
@@ -144,6 +149,12 @@ namespace MotionInterpolation
             base.Update(gameTime);
         }
         
+        private void ResetInterpolationsSteps()
+        {
+            EulerLinInterpolation.ResetSteps(StepsNumber);
+            QuaternionLinInterpolation.ResetSteps(StepsNumber);
+            QuaternionSpherInterpolation.ResetSteps(StepsNumber);
+        }
         private void DrawAxis(ArcBallCamera camera, Effect wireframeEffect)
         {
             foreach (EffectPass pass in wireframeEffect.CurrentTechnique.Passes)
@@ -152,7 +163,6 @@ namespace MotionInterpolation
                 graphics.GraphicsDevice.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList, GlobalAxisVertices.ToArray(), 0, GlobalAxisVertices.Count, GlobalAxisIndices.ToArray(), 0, GlobalAxisIndices.Count / 2);
             }
         }
-
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.LightGray);
@@ -176,12 +186,18 @@ namespace MotionInterpolation
 
             GraphicsDevice.Viewport = leftViewport;
             DrawAxis(camera, wireframeEffect);
-            eulerLinInterpolation.Draw(camera, effect, wireframeEffect, timeElapsedFromAnimationStart, 10, IsAnimated);
+            EulerLinInterpolation.Draw(camera, effect, wireframeEffect, timeElapsedFromAnimationStart, 10, IsAnimated);
+            if (IsStepVisible)
+                EulerLinInterpolation.DrawStages(camera, effect, wireframeEffect);
 
             GraphicsDevice.Viewport = rightViewport;
             DrawAxis(camera, wireframeEffect);
-            quaternionLinInterpolation.Draw(camera, effect, wireframeEffect, timeElapsedFromAnimationStart, 10, IsAnimated);
-            quaternionSpherInterpolation.Draw(camera, effect, wireframeEffect, timeElapsedFromAnimationStart, 10, IsAnimated);
+            QuaternionLinInterpolation.Draw(camera, effect, wireframeEffect, timeElapsedFromAnimationStart, 10, IsAnimated);
+            if (IsStepVisible)
+                QuaternionLinInterpolation.DrawStages(camera, effect, wireframeEffect);
+            QuaternionSpherInterpolation.Draw(camera, effect, wireframeEffect, timeElapsedFromAnimationStart, 10, IsAnimated);
+            if (IsStepVisible)
+                QuaternionSpherInterpolation.DrawStages(camera, effect, wireframeEffect);
             base.Draw(gameTime);
         }
     }

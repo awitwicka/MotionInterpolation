@@ -28,13 +28,21 @@
                         <TextBox x:Name="Z0TextBox" Text="{Binding CriticalMillingDepth, Mode=TwoWay}" Margin="10,0,0,0" Height="40" />
                         <TextBlock Text="z"/>
                     </StackPanel>
-                    <TextBlock Text="y"/>
+                    <StackPanel>
+                        <TextBox x:Name="StepsNumberTextBox" Text="{Binding StepsNumber, Mode=TwoWay}" Margin="10,0,0,0" Height="40" />
+                        <TextBlock Text="Steps Number"/>
+                    </StackPanel>
                 </StackPanel>
             </CommandBar.Content>
             <CommandBar.PrimaryCommands>
-                <AppBarToggleButton x:Name="StartPauseAnimationButton" Checked="StartPauseAnimationButton_Checked"  Unchecked="StartPauseAnimationButton_Unchecked">
+                <AppBarToggleButton x:Name="StartPauseAnimationButton" Label="Start/Pause Animation" Checked="StartPauseAnimationButton_Checked"  Unchecked="StartPauseAnimationButton_Unchecked">
                     <SymbolIcon Symbol="Play"></SymbolIcon>
                 </AppBarToggleButton>
+                <AppBarSeparator/>
+                <!--<AppBarToggleButton x:Name="ToggleStepsVisibilityButton" Label="Show Steps" Click="ToggleStepsVisibilityButton_Click"/>-->
+                <AppBarToggleButton x:Name="SelectQaternionLinButton" Label="Linear Interpolation" IsChecked="True" Click="SelectQaternionLinButton_Click" Icon="Italic"/>
+                <AppBarToggleButton x:Name="SelectQaternionSpherButton" Label="Spherical Interpolation" Click="SelectQaternionSpherButton_Click" Icon="Globe"/>
+                <AppBarSeparator/>
             </CommandBar.PrimaryCommands>
         </CommandBar>
     </SwapChainPanel>

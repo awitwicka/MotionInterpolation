@@ -17,12 +17,14 @@ namespace MotionInterpolation
         public Quaternion Rotation0;
         public Quaternion Rotation1;
         public Color LineColor = Color.Black;
+        public bool IsVisible = true;
 
         private Axis Axe0;
         private Axis Axe1;
         private Axis AxeNext;
         private List<VertexPositionColor> LineVertices = new List<VertexPositionColor>();
         private List<short> LineIndices = new List<short>();
+        private List<Axis> Steps = new List<Axis>();
 
         public QuaternionSpherical(GraphicsDevice device, Vector3 position0, Vector3 position1, Quaternion rotation0, Quaternion rotation1)
         {
@@ -50,22 +52,35 @@ namespace MotionInterpolation
             AxeNext.QuanterionRotation(Rotation0);
             AxeNext.Translate(Position0);
         }
+        public void ResetSteps(int steps)
+        {
+            Steps.Clear();
+            float step = 1 / (float)(steps + 1);
+            for (int i = 1; i <= steps; i++)
+            {
+                Steps.Add(new Axis(device));
+                NextStep(step * i, Steps.Last(), false);
+            }
+        }
 
-        private void NextStep(float time) //0-1
+        private void NextStep(float time, Axis axis, bool drawLine) //0-1
         {
             var nextPos = (1 - time) * Position0 + time * Position1;
             var nextAngle = Quaternion.Slerp(Rotation0, Rotation1, time);
             //var nextAngle = Rotation0 * Math.Pow((Quaternion.Inverse(Rotation0) * Rotation1), time);
 
             //drawing line
-            short vertCount = (short)LineVertices.Count;
-            LineVertices.Add(new VertexPositionColor(nextPos, LineColor));
-            LineIndices.Add((short)(vertCount - 1));
-            LineIndices.Add(vertCount);
+            if (drawLine)
+            {
+                short vertCount = (short)LineVertices.Count;
+                LineVertices.Add(new VertexPositionColor(nextPos, LineColor));
+                LineIndices.Add((short)(vertCount - 1));
+                LineIndices.Add(vertCount);
+            }
 
-            AxeNext.Reset();
-            AxeNext.QuanterionRotation(nextAngle); //reset and rotate
-            AxeNext.Translate(nextPos); //translate
+            axis.Reset();
+            axis.QuanterionRotation(nextAngle); //reset and rotate
+            axis.Translate(nextPos); //translate
 
         }
         /// <summary>
@@ -81,18 +96,31 @@ namespace MotionInterpolation
             {
                 totalAnimationTime *= 1000;
                 if (timeElapsedFromAnimationStart <= totalAnimationTime /*&& gameTime.ElapsedGameTime.TotalMilliseconds>=1*/)
-                    NextStep((float)(timeElapsedFromAnimationStart / totalAnimationTime));
+                    NextStep((float)(timeElapsedFromAnimationStart / totalAnimationTime), AxeNext, true);
             }
-            Axe0.Draw(effect);
-            Axe1.Draw(effect);
-            AxeNext.Draw(effect);
+            if (IsVisible)
+            {
+                Axe0.Draw(effect);
+                Axe1.Draw(effect);
+                AxeNext.Draw(effect);
 
-            if (LineVertices.Count - 1 > 0)
-                foreach (EffectPass pass in wireframeEffect.CurrentTechnique.Passes)
-                {
-                    pass.Apply();
-                    device.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList, LineVertices.ToArray(), 0, LineVertices.Count, LineIndices.ToArray(), 0, LineVertices.Count - 1);
-                }
+                if (LineVertices.Count - 1 > 0)
+                    foreach (EffectPass pass in wireframeEffect.CurrentTechnique.Passes)
+                    {
+                        pass.Apply();
+                        device.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList, LineVertices.ToArray(), 0, LineVertices.Count, LineIndices.ToArray(), 0, LineVertices.Count - 1);
+                    }
+            }
+        }
+        public void DrawStages(ArcBallCamera camera, BasicEffect effect, BasicEffect wireframeEffect)
+        {
+            if (IsVisible)
+            {
+                Axe0.Draw(effect);
+                Axe1.Draw(effect);
+                foreach (var a in Steps)
+                    a.Draw(effect);
+            }
         }
     }
 }
